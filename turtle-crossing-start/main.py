@@ -32,12 +32,15 @@ while game_is_on:
     for car in cars:
         car.move_car()
         if car.distance(player) < 30:
-            score.game_over()
-            screen.textinput("GAME OVER", "Type OK to exit.")
             game_is_on = False
+            score.game_over()
+            # screen.textinput("GAME OVER", "Type OK to exit.")
+
 
     if player.ycor() > 230:
         player.move_back()
         score.level_increase()
         car.speed_increase()
     i += 1
+
+screen.exitonclick()
