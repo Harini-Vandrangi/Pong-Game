@@ -2,7 +2,18 @@ from tkinter import *
 from tkinter import messagebox
 from password import Password
 import pyperclip
+import json
+import os
 
+# ---------------------------- SEARCH ------------------------------- #
+def search():
+    with open("data.json", 'r') as data_file:
+        data = json.load(data_file)
+        try:
+            d = data[web.get()]
+            messagebox.showinfo(title=f"{web.get()}", message=f'mail: {d["mail"]}\npassword: {d["password"]}')
+        except:
+            messagebox.showerror(title=web.get(), message="Password is not yet saved for this website. Create a new one.")
 # ---------------------------- PASSWORD GENERATOR ------------------------------- #
 def generate():
     if web.get()=="":
@@ -15,6 +26,13 @@ def generate():
 
 # ---------------------------- SAVE PASSWORD ------------------------------- #
 def save():
+    new_data = {
+        web.get():
+            {
+                "mail": mail.get(),
+                "password": pw.get(),
+            }
+    }
     if pw.get() == "" or web.get() == "":
         messagebox.showerror(title="Oops!!!", message="Please don't leave any fields empty.")
 
@@ -22,10 +40,25 @@ def save():
         isOk = messagebox.askokcancel(title=web.get(),
                                       message=f"These are the details entered: \n{mail.get()}\n{pw.get()}\nIs it Ok to save?")
         if isOk:
-            with open("data.txt", 'a') as data:
-                data.write(f"{web.get()} | {mail.get()} | {pw.get()}\n")
-            web.delete(0, END)
-            pw.delete(0, END)
+            try:
+                with open("data.json", 'r') as data_file:
+                    try:
+                        data = json.load(data_file)
+                    except:
+                        data_file.close()
+                        os.remove("data.json")
+                        with open("data.json", 'w') as data_file:
+                            json.dump(new_data, data_file, indent=4)
+            except FileNotFoundError:
+                with open("data.json", 'w') as data_file:
+                    json.dump(new_data, data_file, indent=4)
+            else:
+                data.update(new_data)
+                with open("data.json", "w") as data_file:
+                    json.dump(data, data_file, indent=4)
+            finally:
+                web.delete(0, END)
+                pw.delete(0, END)
 
 
 # ---------------------------- UI SETUP ------------------------------- #
@@ -41,9 +74,13 @@ canvas.grid(column=1, row=0)
 # Website label
 website = Label(text="Website:")
 website.grid(column=0, row=1)
-web = Entry(width=50)
+web = Entry(width=32)
 web.focus()
-web.grid(column=1, row=1, columnspan=2)
+web.grid(column=1, row=1)
+
+# search button
+search = Button(text="Search", width=15, command=search)
+search.grid(column=2, row=1)
 
 # email label
 email = Label(text="Email/Username:")
